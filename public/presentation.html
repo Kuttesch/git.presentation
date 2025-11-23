@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git: Mastering the Workflow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+/* THEME: Developer Dark Mode 
+   Concept: High contrast, terminal-inspired, clean and professional.
+   Palette: 
+     - Bg: #0d1117 (GitHub Dimmed Dark)
+     - Text: #c9d1d9 (Light Grey)
+     - Accent 1: #58a6ff (Blue - Links/Icons)
+     - Accent 2: #238636 (Green - Success/Add)
+     - Accent 3: #f85149 (Red - Danger/Delete)
+*/
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #21262d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3vw; /* Spacing between slides */
+  margin: 0;
+  min-height: 100vh;
+  padding: 3vw 0;
+  /* BASE FONT SCALING: The magic number. 
+     1.4vw makes 1rem equal to about 1.4% of screen width.
+     All other em/rem units scale from this. */
+  font-size: 1.4vw; 
+}
+
+.slide-container {
+  align-items: center;
+  background-color: #0d1117;
+  border: 0.1vw solid #30363d;
+  border-radius: 1vw;
+  box-shadow: 0 1vw 3vw rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  
+  /* RESPONSIVE SCALING LOGIC */
+  width: 90vw;           /* Occupy 90% of screen width */
+  aspect-ratio: 16 / 9;  /* Force 16:9 Cinematic Ratio */
+  height: auto;          /* Height is determined by width + ratio */
+  
+  justify-content: center;
+  overflow: hidden;
+  padding: 4vw;          /* Relative padding */
+  position: relative;
+}
+
+/* DECORATIVE BACKGROUND ELEMENTS */
+.slide-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle, rgba(88, 166, 255, 0.05) 0%, rgba(13, 17, 23, 0) 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.slide-container::after {
+  content: '';
+  position: absolute;
+  bottom: -5vw;
+  left: -5vw;
+  width: 35vw;
+  height: 35vw;
+  background: radial-gradient(circle, rgba(35, 134, 54, 0.05) 0%, rgba(13, 17, 23, 0) 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.slide-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* TYPOGRAPHY (Using em relative to body 1.4vw) */
+.slide-container h1,
+.slide-container h2,
+.slide-container h3,
+.slide-container th {
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  margin: 0;
+}
+
+.slide-container h1 {
+  font-size: 4.5em; /* ~6.3vw */
+  letter-spacing: -0.05em;
+  background: linear-gradient(120deg, #58a6ff, #a5d6ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.slide-title {
+  font-size: 2.8em; /* ~3.9vw */
+  margin-bottom: 2.5vw;
+  width: 100%;
+  text-align: left;
+  border-bottom: 0.15vw solid #30363d;
+  padding-bottom: 1vw;
+}
+
+.slide-container p,
+.slide-container li,
+.slide-container td {
+  color: #c9d1d9;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1em; /* ~1.54vw */
+  line-height: 1.6;
+}
+
+.slide-container code {
+  font-family: 'JetBrains Mono', monospace;
+  background-color: #161b22;
+  border: 0.1vw solid #30363d;
+  border-radius: 0.4vw;
+  padding: 0.1vw 0.4vw;
+  color: #a5d6ff;
+  font-size: 0.9em;
+}
+
+/* LAYOUT: Title Slide */
+.title-layout {
+  text-align: center;
+  max-width: 70vw;
+}
+.title-layout h1 { margin-bottom: 1.5vw; }
+.title-layout .subtitle { font-size: 1.5em; color: #8b949e; }
+
+.terminal-bar {
+  background: #161b22;
+  border-radius: 0.6vw 0.6vw 0 0;
+  padding: 0.8vw 1.2vw;
+  display: flex;
+  gap: 0.6vw;
+  border: 0.1vw solid #30363d;
+  border-bottom: none;
+  width: 100%;
+  max-width: 45vw;
+  margin: 3vw auto 0;
+}
+.dot { width: 0.8vw; height: 0.8vw; border-radius: 50%; }
+.dot.red { background: #ff5f56; }
+.dot.yellow { background: #ffbd2e; }
+.dot.green { background: #27c93f; }
+.terminal-window {
+  background: #010409;
+  border: 0.1vw solid #30363d;
+  border-radius: 0 0 0.6vw 0.6vw;
+  padding: 1.5vw;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: left;
+  color: #c9d1d9;
+  max-width: 45vw;
+  margin: 0 auto;
+  font-size: 0.9em;
+}
+.cursor {
+  display: inline-block;
+  width: 0.6vw;
+  height: 1.2em;
+  background: #58a6ff;
+  animation: blink 1s infinite;
+  vertical-align: middle;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* LAYOUT: Two Column */
+.content-area {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: center;
+  width: 100%;
+}
+.two-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4vw;
+  width: 100%;
+  align-items: center;
+}
+.two-column ul {
+  list-style: none;
+  padding: 0;
+}
+.two-column li {
+  margin-bottom: 1.2vw;
+  padding-left: 2vw;
+  position: relative;
+}
+.two-column li::before {
+  content: '\f101';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  left: 0;
+  color: #58a6ff;
+}
+
+/* LAYOUT: Tiled Text */
+.tiled-content {
+  display: flex;
+  gap: 2vw;
+  width: 100%;
+  justify-content: center;
+}
+.tile {
+  background-color: #161b22;
+  border: 0.1vw solid #30363d;
+  border-radius: 0.6vw;
+  padding: 2vw;
+  flex: 1;
+  text-align: center;
+  transition: transform 0.2s;
+}
+.tile:hover { transform: translateY(-0.4vw); border-color: #58a6ff; }
+.tile .icon { font-size: 3em; color: #58a6ff; margin-bottom: 1.5vw; }
+.tile h3 { color: #ffffff; font-size: 1.5em; margin-bottom: 1vw; }
+
+/* LAYOUT: Image Right */
+.image-wrapper {
+  border-radius: 0.8vw;
+  overflow: hidden;
+  border: 0.1vw solid #30363d;
+  box-shadow: 0 0.4vw 1vw rgba(0,0,0,0.3);
+  height: 25vw; /* Responsive height */
+  background: #010409;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.image-wrapper img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+}
+
+/* LAYOUT: Bleed Image Right */
+.slide-container.bleed-image-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  padding: 0;
+  gap: 0;
+}
+.bleed-text-side {
+  padding: 5vw 4vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+.image-container {
+  height: 100%;
+  width: 100%;
+}
+img.bleed-image-side {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  border-left: 0.1vw solid #30363d;
+}
+
+/* LAYOUT: Table */
+.table-layout table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table-layout th {
+  text-align: left;
+  border-bottom: 0.15vw solid #30363d;
+  padding: 1vw;
+  color: #58a6ff;
+}
+.table-layout td {
+  border-bottom: 0.1vw solid #21262d;
+  padding: 1vw;
+  font-family: 'Inter', sans-serif;
+}
+.table-layout tr:last-child td { border-bottom: none; }
+.code-cell { font-family: 'JetBrains Mono', monospace; color: #a5d6ff; }
+
+/* LAYOUT: Styled Bullets */
+.bullet-list ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2vw;
+}
+.bullet-list li {
+  background: #161b22;
+  border: 0.1vw solid #30363d;
+  padding: 1.5vw 1.5vw 1.5vw 4vw;
+  border-radius: 0.6vw;
+  position: relative;
+}
+.bullet-list i {
+  position: absolute;
+  left: 1.5vw;
+  top: 1.8vw;
+  font-size: 1.5em;
+}
+
+/* LAYOUT: Q&A */
+.qa-layout { text-align: center; }
+.qa-layout h2 { font-size: 8em; color: #58a6ff; margin-bottom: 1vw; opacity: 0.1; line-height: 1; }
+.qa-layout .big-text { font-size: 4em; font-weight: bold; color: #fff; margin-bottom: 2vw; }
+.contact-info { color: #8b949e; font-size: 1.5em; margin-top: 3vw; font-family: 'JetBrains Mono', monospace; }
+
+/* SPECIAL: Overlay for Slide 5 */
+.readme-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(13, 17, 23, 0.92);
+  padding: 2vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+}
+.readme-text {
+  font-family: 'JetBrains Mono', monospace;
+  color: #00ff00; /* Retro green */
+  font-size: 0.8em;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* UTILS */
+.highlight-green { color: #238636; }
+.highlight-red { color: #f85149; }
+.highlight-blue { color: #58a6ff; }
+
+/* Custom sizing for specific terminal windows inside 2-col layouts */
+.two-column .terminal-window {
+    max-width: 100%;
+    width: 100%;
+}
+
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide-container" id="slide1">
+    <div class="title-layout">
+        <h1>Git</h1>
+        <p class="subtitle">Standard Commands, Feature Branching, Collaboration & Advanced Rebasing</p>
+        
+        <div class="terminal-bar">
+            <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+        </div>
+        <div class="terminal-window">
+            $ git status<br>
+            On branch main<br>
+            Your branch is up to date with 'origin/main'.<br>
+            <br>
+            $ git checkout -b feature/interactive-presentation<br>
+            Switched to a new branch 'feature/interactive-presentation'<br>
+            $ <span class="cursor"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 2: Agenda -->
+<div class="slide-container" id="slide2">
+    <h2 class="slide-title">Session Agenda (90 Min)</h2>
+    <div class="content-area">
+        <div class="tiled-content">
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                <h3>Origins</h3>
+                <p>The history of Git, the BitKeeper crisis, and Linus Torvalds.</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-code-branch"></i></div>
+                <h3>Workflows</h3>
+                <p>Branching strategies, configuration, stash, and standard collaboration.</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fa-solid fa-laptop-code"></i></div>
+                <h3>Advanced</h3>
+                <p>Resolving conflicts, interactive rebasing, the Reflog, and undoing mistakes.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 3: The Origin Story -->
+<div class="slide-container" id="slide3">
+    <h2 class="slide-title">Origins: The BitKeeper Crisis</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>2005: A Critical Turning Point</h3>
+                <p>Before Git, the Linux Kernel team used a proprietary VCS called <strong>BitKeeper</strong>. In April 2005, a copyright dispute caused the free license to be revoked.</p>
+                <ul>
+                    <li>The Linux community needed a new home immediately.</li>
+                    <li>Existing open-source options (CVS, Subversion) were too slow for the massive Kernel project.</li>
+                    <li>The requirement: A distributed system that could handle thousands of patches efficiently.</li>
+                </ul>
+            </div>
+            <div class="image-wrapper">
+                <img src="http://googleusercontent.com/image_collection/image_retrieval/5055943260499308715" alt="Abstract visualization of a timeline representing software evolution">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 4: Linus Torvalds -->
+<div class="slide-container" id="slide4">
+    <h2 class="slide-title">Torvalds' Solution</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>"I did it in ten days"</h3>
+                <p><strong>Linus Torvalds</strong>, the creator of Linux, disappeared for a week and emerged with Git.</p>
+                <div style="background: #161b22; padding: 1.5vw; border-left: 0.3vw solid #58a6ff; margin: 1.5vw 0; font-style: italic; color: #a5d6ff;">
+                    "I want to be able to apply patches in three seconds, not three minutes."
+                </div>
+                <p>His core design philosophy:</p>
+                <ul>
+                    <li><strong class="highlight-green">Speed:</strong> Performance was non-negotiable.</li>
+                    <li><strong class="highlight-blue">Distributed:</strong> Every developer has the full history.</li>
+                    <li><strong class="highlight-red">Data Integrity:</strong> Cryptographically secure history (SHA-1).</li>
+                </ul>
+            </div>
+            <div class="image-wrapper">
+                <img src="http://googleusercontent.com/image_collection/image_retrieval/6369504742625876214" alt="Linus Torvalds portrait 2005" style="object-position: top;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 5: The Name -->
+<div class="slide-container" id="slide5">
+    <h2 class="slide-title">What's in a Name?</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>The Information Manager from Hell</h3>
+                <p>Linus has a dry sense of humor. He famously quipped: <em>"I'm an egotistical bastard, and I name all my projects after myself. First 'Linux', now 'git'."</em></p>
+                <p>The name "git" is British slang for an unpleasant or contemptible person.</p>
+                <p>The original <code>README</code> file listed multiple definitions, ranging from "random three-letter combination" to "goddamn idiotic truckload of sh*t".</p>
+            </div>
+            <div class="image-wrapper">
+                <img src="http://googleusercontent.com/image_collection/image_retrieval/5144666074288718501" alt="Retro computer terminal screen" style="opacity: 0.6;">
+                <div class="readme-overlay">
+                    <div class="readme-text">
+"git" can mean anything, depending on your mood.
+
+ - random three-letter combination that is pronounceable, and not actually used by any common UNIX command.  The fact that it is a mispronunciation of "get" may or may not be relevant.
+
+ - stupid. contemptible and despicable. simple. Take your pick from the dictionary of slang.
+
+ - "global information tracker": you're in a good mood, and it actually works for you. Angels sing, and a light suddenly fills the room.
+
+ - "goddamn idiotic truckload of sh*t": when it breaks.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 6: The Git Data Model -->
+<div class="slide-container" id="slide6">
+    <h2 class="slide-title">The Git Data Model</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>Three States of a File</h3>
+                <p>Understanding where your code lives is key to avoiding mistakes.</p>
+                <ul>
+                    <li><strong>Working Directory:</strong> Your active file system where you edit code.</li>
+                    <li><strong>Staging Area (Index):</strong> A preview of your next commit.</li>
+                    <li><strong>Repository (.git):</strong> The permanent history of your project.</li>
+                </ul>
+                <p style="margin-top: 1.5vw; font-style: italic; color: #8b949e;">Files move from Working &#8594; Staging &#8594; Repository.</p>
+            </div>
+            <div class="image-wrapper">
+                <img src="http://googleusercontent.com/image_collection/image_retrieval/5408356923446447566" alt="Diagram showing the flow between Working Directory, Staging Area, and Repository">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 7: Essential Setup & Inspection -->
+<div class="slide-container" id="slide7">
+    <h2 class="slide-title">Essential Setup & Context</h2>
+    <div class="content-area">
+        <div class="table-layout">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Description</th>
+                        <th>Context</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="code-cell">git init</td>
+                        <td>Initialize a new git repository locally.</td>
+                        <td>Starting fresh.</td>
+                    </tr>
+                    <tr>
+                        <td class="code-cell">git clone &lt;url&gt;</td>
+                        <td>Download a repository from a remote source.</td>
+                        <td>Onboarding.</td>
+                    </tr>
+                     <tr>
+                        <td class="code-cell">git status</td>
+                        <td>Show the working tree status.</td>
+                        <td>Your daily check-up.</td>
+                    </tr>
+                     <tr>
+                        <td class="code-cell">git switch &lt;branch&gt;</td>
+                        <td>Switch to a specific branch.</td>
+                        <td>Navigation.</td>
+                    </tr>
+                    <tr>
+                        <td class="code-cell">git fetch</td>
+                        <td>Download objects and refs from another repository.</td>
+                        <td>Safe update (no merge).</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 8: Action & Sync Toolkit -->
+<div class="slide-container" id="slide8">
+    <h2 class="slide-title">Action & Sync Toolkit</h2>
+    <div class="content-area">
+        <div class="table-layout">
+             <table>
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Description</th>
+                        <th>Context</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="code-cell">git add &lt;file&gt;</td>
+                        <td>Add file contents to the index (Staging).</td>
+                        <td>Prepare commit.</td>
+                    </tr>
+                    <tr>
+                         <td class="code-cell">git rm &lt;file&gt;</td>
+                        <td>Remove files from the working tree and index.</td>
+                        <td>Deletion.</td>
+                    </tr>
+                    <tr>
+                        <td class="code-cell">git commit -m "msg"</td>
+                        <td>Record changes to the repository.</td>
+                        <td>Save point.</td>
+                    </tr>
+                    <tr>
+                        <td class="code-cell">git pull</td>
+                        <td>Fetch from and integrate with another repo.</td>
+                        <td>Fetch + Merge.</td>
+                    </tr>
+                    <tr>
+                        <td class="code-cell">git push</td>
+                        <td>Update remote refs along with associated objects.</td>
+                        <td>Publishing work.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 9: The Daily Workflow Cycle -->
+<div class="slide-container" id="slide9">
+    <h2 class="slide-title">The Daily Workflow Cycle</h2>
+    <div class="content-area">
+        <div class="two-column">
+             <div class="terminal-window">
+                <div style="color: #8b949e;"># 1. Check what changed</div>
+                $ git status<br>
+                <span style="color: #f85149;">modified:   style.css</span><br>
+                <span style="color: #f85149;">deleted:    old_script.js</span><br><br>
+                
+                <div style="color: #8b949e;"># 2. Stage changes (Add/Remove)</div>
+                $ git add style.css<br>
+                $ git rm old_script.js<br><br>
+                
+                <div style="color: #8b949e;"># 3. Commit snapshot</div>
+                $ git commit -m "refactor: update styles and cleanup"<br><br>
+                
+                <div style="color: #8b949e;"># 4. Sync with team</div>
+                $ git fetch<br>
+                $ git pull<br>
+                $ git push origin main<br>
+            </div>
+            <div>
+                <h3>The Cycle</h3>
+                <ol style="line-height: 1.8;">
+                    <li><strong>Inspect:</strong> Always start with <code>status</code> to know where you stand.</li>
+                    <li><strong>Stage:</strong> Select exactly what goes into the next snapshot using <code>add</code>, <code>rm</code>, or <code>mv</code>.</li>
+                    <li><strong>Commit:</strong> Seal the snapshot with a meaningful message.</li>
+                    <li><strong>Sync:</strong> 
+                        <ul>
+                            <li><code>fetch</code> to see what's new safely.</li>
+                            <li><code>pull</code> to merge those updates.</li>
+                            <li><code>push</code> to share your work.</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 10: Scenario A - Cloning -->
+<div class="slide-container" id="slide10">
+    <h2 class="slide-title">Scenario A: Cloning an Existing Repo</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>Getting Started Quickly</h3>
+                <p>When you join an existing project, you rarely start from scratch. You download the history from a server (GitHub, GitLab, etc.).</p>
+                <ul>
+                    <li><strong>Clone:</strong> Downloads the entire history and checks out the default branch.</li>
+                    <li><strong>Remote:</strong> The source is automatically saved as the remote named <code>origin</code>.</li>
+                </ul>
+            </div>
+            <div class="terminal-window">
+                <div style="color: #8b949e;"># 1. Copy the SSH URL from GitHub/GitLab</div>
+                $ git clone git@github.com:user/project.git<br>
+                Cloning into 'project'...<br>
+                remote: Enumerating objects: 105, done.<br>
+                Receiving objects: 100% (105/105), 12.4 KiB, done.<br><br>
+                
+                <div style="color: #8b949e;"># 2. Go into the folder</div>
+                $ cd project<br><br>
+                
+                <div style="color: #8b949e;"># 3. Verify connection</div>
+                $ git remote -v<br>
+                origin  git@github.com:user/project.git (fetch)<br>
+                origin  git@github.com:user/project.git (push)
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 11: First Time Setup -->
+<div class="slide-container" id="slide11">
+    <h2 class="slide-title">First Time Setup</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>Identify Yourself</h3>
+                <p>Git <strong>will not</strong> let you commit until you tell it who you are. This information is baked into every commit you make forever.</p>
+                <ul>
+                    <li><strong>User Name:</strong> Appears in the log and on GitHub/GitLab.</li>
+                    <li><strong>Email:</strong> Must match your GitHub account to link commits to your profile.</li>
+                    <li><strong>Editor:</strong> Defaults to Vim (which can be scary). Change it to Nano or VS Code if you prefer.</li>
+                </ul>
+            </div>
+            <div class="terminal-window">
+                <div style="color: #8b949e;"># 1. Set Name</div>
+                $ git config --global user.name "John Doe"<br><br>
+                
+                <div style="color: #8b949e;"># 2. Set Email</div>
+                $ git config --global user.email "john@example.com"<br><br>
+                
+                <div style="color: #8b949e;"># 3. (Optional) Set Editor to VS Code</div>
+                $ git config --global core.editor "code --wait"<br><br>
+                
+                <div style="color: #8b949e;"># 4. Check settings</div>
+                $ git config --list
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 12: Scenario B - Init & Start -->
+<div class="slide-container" id="slide12">
+    <h2 class="slide-title">Scenario B: Starting from Scratch</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div class="terminal-window">
+                <div style="color: #8b949e;"># 1. Initialize Git in current folder</div>
+                $ git init<br>
+                Initialized empty Git repository in /app/.git/<br><br>
+                
+                <div style="color: #8b949e;"># 2. Create a file</div>
+                $ echo "# New Project" >> README.md<br><br>
+                
+                <div style="color: #8b949e;"># 3. Stage & Commit</div>
+                $ git add README.md<br>
+                $ git commit -m "feat: initial commit"<br><br>
+                
+                <div style="color: #8b949e;"># 4. Link to GitHub (add remote via SSH)</div>
+                $ git remote add origin git@github.com:user/repo.git<br><br>
+                
+                <div style="color: #8b949e;"># 5. Push (set upstream)</div>
+                $ git push -u origin main
+            </div>
+            <div>
+                <h3>The "New Project" Run</h3>
+                <ol>
+                    <li><strong>Init:</strong> Transforms the current folder into a Git repo (creates hidden <code>.git</code> folder).</li>
+                    <li><strong>Create:</strong> Make your first file (usually README).</li>
+                    <li><strong>Commit:</strong> Save the first snapshot locally.</li>
+                    <li><strong>Remote Add:</strong> Tell Git where the server lives (alias it as <code>origin</code>).</li>
+                    <li><strong>Push -u:</strong> Push the code and tie your local branch to the remote one (tracking).</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 13: The .gitignore File -->
+<div class="slide-container" id="slide13">
+    <h2 class="slide-title">The .gitignore File</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>"What happens in the repo, stays in the repo..."</h3>
+                <p>Unless it is ignored. This file tells Git which files to intentionally track and which to ignore.</p>
+                <ul>
+                    <li><strong>Dependencies:</strong> <code>node_modules/</code>, <code>/vendor</code></li>
+                    <li><strong>Secrets:</strong> <code>.env</code>, <code>api_keys.txt</code></li>
+                    <li><strong>Build Artifacts:</strong> <code>/dist</code>, <code>/build</code>, <code>*.log</code></li>
+                    <li><strong>System Files:</strong> <code>.DS_Store</code></li>
+                </ul>
+                <p style="margin-top:20px; color:#58a6ff"><i class="fa-solid fa-circle-info"></i> Important: If you already committed a file, adding it to .gitignore later won't remove it from history.</p>
+            </div>
+            <div class="terminal-window">
+                <div style="color: #8b949e;"># .gitignore content example</div>
+                # Dependencies<br>
+                node_modules/<br>
+                *.log<br><br>
+                
+                # Secrets (Never commit these!)<br>
+                .env<br>
+                private_key.pem<br><br>
+                
+                # OS junk<br>
+                .DS_Store<br>
+                Thumbs.db
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 14: Branching Concepts -->
+<div class="slide-container" id="slide14">
+    <h2 class="slide-title">The Power of Branching</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <p>A branch in Git is simply a lightweight movable pointer to a commit.</p>
+                <div class="terminal-window" style="margin: 1.5vw 0;">
+                    HEAD -> feature/login<br>
+                    |<br>
+                    [Commit C] -> [Commit B] -> [Commit A]
+                </div>
+                <h3>Why Branch?</h3>
+                <ul>
+                    <li><strong>Isolation:</strong> Develop features without breaking production.</li>
+                    <li><strong>Context Switching:</strong> Pause work and fix a bug elsewhere easily.</li>
+                    <li><strong>Experimentation:</strong> Try ideas safely; delete the branch if they fail.</li>
+                </ul>
+            </div>
+            <div class="image-wrapper" style="background: transparent; border: none; box-shadow: none;">
+                 <!-- Abstract visual representation using font awesome icons -->
+                 <div style="text-align: center; color: #30363d;">
+                    <i class="fa-solid fa-code-branch" style="font-size: 20vw; color: #58a6ff; opacity: 0.8;"></i>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 15: Feature Branch Workflow -->
+<div class="slide-container" id="slide15">
+    <h2 class="slide-title">Feature Branch Workflow</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <p>The standard industry workflow for collaboration.</p>
+                <ol style="line-height: 1.6;">
+                    <li><strong>Update:</strong> Ensure local main is up to date.</li>
+                    <li><strong>Branch:</strong> Create <code>feature/xyz</code> to isolate work.</li>
+                    <li><strong>Commit:</strong> Make granular, logical commits.</li>
+                    <li><strong>Push:</strong> Upload branch to remote.</li>
+                    <li><strong>PR:</strong> Open Pull Request for review.</li>
+                </ol>
+            </div>
+            <div class="terminal-window">
+                <div style="color: #8b949e;"># 1. Update Main</div>
+                $ git checkout main<br>
+                $ git pull<br><br>
+                
+                <div style="color: #8b949e;"># 2. Create Branch</div>
+                $ git checkout -b feature/login-page<br>
+                <span style="color: #8b949e;">Switched to a new branch 'feature/login-page'</span><br><br>
+                
+                <div style="color: #8b949e;"># 3. Work & Commit</div>
+                $ git add login.html<br>
+                $ git commit -m "feat: add login form"<br><br>
+                
+                <div style="color: #8b949e;"># 4. Push</div>
+                $ git push -u origin feature/login-page
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 16: Git Stash -->
+<div class="slide-container" id="slide16">
+    <h2 class="slide-title">Git Stash (The "Pause" Button)</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>Scenario: The Boss Interruption</h3>
+                <p>You are deep in messy code on <code>feature/login</code>. Your boss rushes in: "Production is down! Fix it on <code>main</code> now!"</p>
+                <p>You can't commit (code is broken). You can't switch branches (git forbids it with dirty state).</p>
+                <p><strong>Solution:</strong> <code>git stash</code> takes your dirty state, saves it on a clipboard, and reverts your working directory to the last clean commit.</p>
+            </div>
+            <div class="terminal-window">
+                <div style="color: #8b949e;"># 1. Save messy work to clipboard</div>
+                $ git stash<br>
+                Saved working directory and index state WIP...<br><br>
+                
+                <div style="color: #8b949e;"># 2. Go fix the bug</div>
+                $ git checkout main<br>
+                $ ... (fix bug, commit, push) ...<br><br>
+                
+                <div style="color: #8b949e;"># 3. Return and restore work</div>
+                $ git checkout feature/login<br>
+                $ git stash pop<br>
+                On branch feature/login... Changes to be committed...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 17: Collaboration (PRs) -->
+<div class="slide-container" id="slide17">
+    <h2 class="slide-title">Collaboration & Code Review</h2>
+    <div class="content-area">
+        <div class="two-column">
+             <div class="image-wrapper">
+                <img src="http://googleusercontent.com/image_collection/image_retrieval/3386028123463675831" alt="Illustration of team collaboration around code">
+            </div>
+            <div>
+                <h3>The Pull Request (PR) Lifecycle</h3>
+                <p>Collaboration happens <em>before</em> the merge.</p>
+                <ul>
+                    <li><strong>Code Review:</strong> Peers check logic, style, and bugs.</li>
+                    <li><strong>CI/CD Checks:</strong> Automated tests run against your branch.</li>
+                    <li><strong>Discussion:</strong> Resolving comments and iterating.</li>
+                    <li><strong>Approval:</strong> Explicit sign-off required to merge.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 18: Git Tags -->
+<div class="slide-container" id="slide18">
+    <h2 class="slide-title">Git Tags (Releases)</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>Marking Milestones</h3>
+                <p>While branches move with every commit, tags are permanent bookmarks in history. They are used to mark specific versions of your software (e.g., v1.0, v2.0).</p>
+                <ul>
+                    <li><strong>Annotated Tags:</strong> Store the tagger's name, email, date, and a message. Recommended for releases.</li>
+                    <li><strong>Lightweight Tags:</strong> Just a name pointing to a commit.</li>
+                </ul>
+            </div>
+            <div class="terminal-window">
+                <div style="color: #8b949e;"># 1. Create an annotated tag</div>
+                $ git tag -a v1.0.0 -m "Release version 1.0"<br><br>
+                
+                <div style="color: #8b949e;"># 2. List tags</div>
+                $ git tag<br>
+                v1.0.0<br>
+                v0.9.0<br><br>
+                
+                <div style="color: #8b949e;"># 3. Push tags to remote</div>
+                $ git push --tags<br>
+                Total 0 (delta 0), reused 0 (delta 0)<br>
+                To git@github.com:user/repo.git<br>
+                * [new tag]         v1.0.0 -> v1.0.0
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 19: Merge vs Rebase -->
+<div class="slide-container" id="slide19">
+    <h2 class="slide-title">Merge vs. Rebase</h2>
+    <div class="content-area">
+        <div class="two-column">
+             <div>
+                <h3>Merge (Non-Destructive)</h3>
+                <p>Creates a "merge commit". Preserves history exactly as it happened. Good for public branches.</p>
+                <div style="margin: 1.5vw 0; border-top: 0.1vw solid #30363d; padding-top: 1.5vw;"></div>
+                <h3>Rebase (Destructive/Rewrite)</h3>
+                <p>Moves your entire branch to begin at the tip of the main branch. Creates a linear history. <span class="highlight-green">Cleaner history</span>, but dangerous on shared branches.</p>
+                <p class="highlight-red" style="font-size: 0.9em;"><i class="fa-solid fa-triangle-exclamation"></i> Never rebase a public branch others rely on!</p>
+            </div>
+            <div class="image-wrapper">
+                <img src="http://googleusercontent.com/image_collection/image_retrieval/12825469496993595525" alt="Diagram comparing Git Merge and Git Rebase topology">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 20: Resolving Conflicts -->
+<div class="slide-container" id="slide20">
+    <h2 class="slide-title">Resolving Merge Conflicts</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>When Git Gets Confused</h3>
+                <p>If two people edit the exact same lines of the same file, Git cannot automatically merge them. It pauses and asks for help.</p>
+                <p><strong>The Process:</strong></p>
+                <ol>
+                    <li>Open the file in your editor.</li>
+                    <li>Look for <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> markers.</li>
+                    <li>Edit the code to how it <em>should</em> look.</li>
+                    <li>Remove the markers.</li>
+                    <li><code>git add</code> the file and <code>git commit</code>.</li>
+                </ol>
+            </div>
+            <div class="terminal-window" style="border: 0.1vw solid #f85149;">
+                $ git merge feature/update-header<br>
+                CONFLICT (content): Merge conflict in index.html<br>
+                Automatic merge failed; fix conflicts and commit.<br><br>
+                
+                <div style="color: #c9d1d9; background: #21262d; padding: 0.8vw;">
+                    &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD<br>
+                    &lt;h1&gt;Welcome to My Site&lt;/h1&gt;<br>
+                    =======<br>
+                    &lt;h1&gt;Welcome to Our Amazing App&lt;/h1&gt;<br>
+                    &gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/update-header
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 21: Undoing Mistakes -->
+<div class="slide-container" id="slide21">
+    <h2 class="slide-title">Undoing Mistakes</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3><i class="fa-solid fa-eraser highlight-red"></i> Git Reset (Destructive)</h3>
+                <p>Rewinds history to a previous state.</p>
+                <p><code>git reset --hard HEAD~1</code></p>
+                <ul>
+                    <li><strong>Use when:</strong> You made a mistake locally and haven't pushed yet.</li>
+                    <li><strong>Effect:</strong> The bad commit disappears. It never happened.</li>
+                </ul>
+            </div>
+            <div>
+                <h3><i class="fa-solid fa-rotate-left highlight-green"></i> Git Revert (Safe)</h3>
+                <p>Creates a <em>new</em> commit that is the exact opposite of the bad commit.</p>
+                <p><code>git revert &lt;commit-hash&gt;</code></p>
+                <ul>
+                    <li><strong>Use when:</strong> You already pushed the bad code to a shared branch.</li>
+                    <li><strong>Effect:</strong> History is preserved, but the bug is fixed safely.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 22: The Reflog -->
+<div class="slide-container" id="slide22">
+    <h2 class="slide-title">The Reflog: Your Safety Net</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>"I deleted my branch! It's gone forever!"</h3>
+                <p><strong>No, it's probably not.</strong></p>
+                <p>Git keeps a hidden log of <em>every</em> movement of the HEAD pointer (commits, resets, merges, branch switches) for 30-90 days.</p>
+                <p>If you <code>reset --hard</code> to the wrong place, you can find the "lost" commit hash in the reflog and reset back to it.</p>
+            </div>
+            <div class="terminal-window">
+                $ git reflog<br>
+                <span style="color: #a5d6ff;">ea32c11</span> HEAD@{0}: commit: Fix login bug<br>
+                <span style="color: #a5d6ff;">4b8d920</span> HEAD@{1}: reset: moving to HEAD~2<br>
+                <span style="color: #a5d6ff;">92a4b11</span> HEAD@{2}: checkout: moving from main to feature<br><br>
+                
+                <span style="color: #8b949e;"># Recover the state before the reset:</span><br>
+                $ git reset --hard 92a4b11
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 23: Visualizing History -->
+<div class="slide-container" id="slide23">
+    <h2 class="slide-title">Visualizing History (Log)</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div class="terminal-window">
+                $ git log --oneline --graph --all<br>
+                <span style="color: #f85149;">*</span> a1b2c3d (HEAD -> main) Fix styling<br>
+                <span style="color: #f85149;">*</span>   e4f5g6h Merge branch 'feature/auth'<br>
+                <span style="color: #58a6ff;">| \</span><br>
+                <span style="color: #58a6ff;">|  *</span> 7h8i9j0 (feature/auth) Add login form<br>
+                <span style="color: #58a6ff;">|  *</span> k1l2m3n Update user model<br>
+                <span style="color: #f85149;">* /</span><br>
+                <span style="color: #f85149;">*</span> o4p5q6r Initial commit
+            </div>
+            <div>
+                <h3>Don't Fly Blind</h3>
+                <p>The standard <code>git log</code> is verbose and hard to read. Use flags to see the "subway map" of your repository.</p>
+                <ul>
+                    <li><code>--oneline</code>: Compress each commit to one line.</li>
+                    <li><code>--graph</code>: Draw the branch structure using ASCII art.</li>
+                    <li><code>--all</code>: Show all branches, not just the current one.</li>
+                </ul>
+                <p><em>Tip: Alias this command to `git lg` in your config!</em></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 24: Interactive Rebase Intro -->
+<div class="slide-container" id="slide24">
+    <h2 class="slide-title">Interactive Rebase (git rebase -i)</h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <h3>What is it?</h3>
+                <p>A powerful tool to polish your commit history before merging. It lets you edit commits that have already been made (but not pushed to a shared/locked branch).</p>
+                <h3>Why use it?</h3>
+                <ul>
+                    <li>Fix typos in commit messages.</li>
+                    <li>Combine (squash) multiple "WIP" commits into one.</li>
+                    <li>Delete unwanted commits.</li>
+                    <li>Reorder commits for logical flow.</li>
+                </ul>
+            </div>
+             <div class="terminal-window">
+                $ git rebase -i HEAD~3<br><br>
+                <span style="color: #8b949e;"># Opens your editor with a list of commits...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 25: Interactive Rebase Options -->
+<div class="slide-container" id="slide25">
+    <h2 class="slide-title">Interactive Rebase Commands</h2>
+    <div class="content-area">
+        <div class="table-layout">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Keyword</th>
+                        <th>Effect</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="code-cell">pick</td>
+                        <td>Use the commit as is (default).</td>
+                    </tr>
+                    <tr>
+                        <td class="code-cell">reword</td>
+                        <td>Use the commit, but edit the commit message.</td>
+                    </tr>
+                    <tr>
+                        <td class="code-cell">edit</td>
+                        <td>Use commit, but stop for amending (changing content).</td>
+                    </tr>
+                    <tr>
+                        <td class="code-cell">squash</td>
+                        <td>Use commit, but meld into previous commit.</td>
+                    </tr>
+                    <tr>
+                        <td class="code-cell">fixup</td>
+                        <td>Like "squash", but discard this commit's log message.</td>
+                    </tr>
+                    <tr>
+                        <td class="code-cell">drop</td>
+                        <td>Remove commit.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 26: Best Practices -->
+<div class="slide-container" id="slide26">
+    <h2 class="slide-title">Git Best Practices</h2>
+    <div class="content-area">
+        <div class="bullet-list">
+            <ul>
+                <li><i class="fa-solid fa-atom highlight-blue"></i><strong>Atomic Commits:</strong> One commit should do one thing. If you fix a bug and add a feature, that's two commits.</li>
+                <li><i class="fa-solid fa-message highlight-green"></i><strong>Good Messages:</strong> Subject line < 50 chars. Imperative mood ("Add login", not "Added login").</li>
+                <li><i class="fa-solid fa-code-pull-request highlight-blue"></i><strong>Review Culture:</strong> Don't just approve. Ask questions. Code reviews are for knowledge sharing.</li>
+                <li><i class="fa-solid fa-ban highlight-red"></i><strong>Don't Rewrite Public History:</strong> If you've pushed to `main`, don't rebase it.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 27: Q&A -->
+<div class="slide-container" id="slide27">
+    <div class="qa-layout">
+        <h2>Q&A</h2>
+        <div class="big-text">Thank You!</div>
+        <p>Now opening the floor for questions on workflows, specific commands, or edge cases.</p>
+        <div class="contact-info">
+            $ git commit -m "End of Presentation"
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
