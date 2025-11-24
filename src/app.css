@@ -4,6 +4,7 @@ body {
   background: #0f172a;
   color: #e2e8f0;
   font-family: system-ui, sans-serif;
+  user-select: none;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
